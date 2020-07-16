@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setUpDatabase = exports.Grateful = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
-exports.sequelize = new sequelize_1.Sequelize('postgres://tehee:@localhost:7432/tehee'); // Example for postgres
+exports.sequelize = new sequelize_1.Sequelize('postgres://postgres:@localhost:7432/grateful'); // Example for postgres
 class Grateful extends sequelize_1.Model {
 }
 exports.Grateful = Grateful;
@@ -62,7 +62,6 @@ function setUpDatabase() {
         catch (error) {
             console.error('Unable to connect to the database:', error);
         }
-        console.log('fun');
     });
 }
 exports.setUpDatabase = setUpDatabase;

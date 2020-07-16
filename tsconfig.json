@@ -5,6 +5,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "esModuleInterop": true,
-    "incremental": true
+    "incremental": true,
+    "strictNullChecks": true
   }
 }

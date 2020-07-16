@@ -1,8 +1,8 @@
 import twilio from 'twilio'
 
 export const sendSms = (message: string) => {
-  const accountSid = 'AC9d091bee8a4298347936952b19e4e246'
-  const authToken = 'd06db33a248dccdbac4f7debf043a4ea'
+  const accountSid = process.env.TWILIO_ACCOUNT_SID
+  const authToken = process.env.TWILIO_AUTH_TOKEN
   const client = twilio(accountSid, authToken)
 
   const messageInstancePromise = client.messages.create({

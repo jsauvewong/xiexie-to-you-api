@@ -2817,7 +2817,7 @@
         "affectsGlobalScope": false
       },
       "../src/postgresql.ts": {
-        "version": "15e1f6d6b74de04214cd87b6525d4ba101ede1c616c6bb35ed7951e1cea92227",
+        "version": "854891a2471de120619509de1c181cda8a213d20da56312d2ecbdfa6b4c637d7",
         "signature": "82050fbfedc39d94a7011ffc03ef8b5cc2b9f2b018536db59b698016aec665bc",
         "affectsGlobalScope": false
       },
@@ -2837,7 +2837,7 @@
         "affectsGlobalScope": false
       },
       "../src/express.ts": {
-        "version": "6cfddba437bc1c4bb57d05533b05dc2672994631ef173463d80e0f1b3138330e",
+        "version": "1b9b2941c2b4441e5a7d18cca0b2da00ef5daf6583b71e1aef3c86598ba19f24",
         "signature": "cc740fd239c6e18b0d2ae40edac5b1f9b594498306221901b9616d8919fbc733",
         "affectsGlobalScope": false
       },

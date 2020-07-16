@@ -55,6 +55,5 @@ exports.startServer = () => {
         }
     }));
     app.listen(process.env.PORT || 7432, onDone);
-    console.log('poop');
 };
 //# sourceMappingURL=express.js.map

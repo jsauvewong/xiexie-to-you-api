@@ -20,7 +20,6 @@ export const startServer = () => {
   //   res.sendFile(__dirname + '../public/redirectsuccess.html')
   // })
 
-  app.use(express.urlencoded({ extended: false }))
 
   app.post('/grateful', jsonParser, async (req, res) => {
     const { name, smsNumber } = req.body
@@ -43,7 +42,5 @@ export const startServer = () => {
     }
   })
 
-  app.listen(process.env.PORT || 7432, onDone)
+  app.listen(process.env.PORT, onDone)
 }
-
-
