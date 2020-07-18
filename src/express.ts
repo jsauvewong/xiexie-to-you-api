@@ -1,12 +1,17 @@
 import express from 'express'
-import { Grateful } from './postgreSQL'
+import { User, Verification } from './postgreSQL'
 import bodyParser from 'body-parser'
 import path from 'path'
 import { filterNumber } from './parseNumber'
 
+enum ErrorNames {
+  invalidPhoneNumber = 'invalidPhoneNumber',
+  invalidVerification = 'invalidVerification'
+}
+
 export const startServer = () => {
   const app = express()
-  const onDone = () => console.log(`Example app listening at http://localhost:${7432}`)
+  const onDone = () => console.log(`Example app listening at http://localhost:${6432}`)
   const jsonParser = bodyParser.json()
 
   app.get('/root', (req, res) => res.send('Hello World!'))
@@ -20,7 +25,33 @@ export const startServer = () => {
   //   res.sendFile(__dirname + '../public/redirectsuccess.html')
   // })
 
+  app.post('/auth/requestVerification', jsonParser, async (req, res) => {
+    const { phoneNumber } = req.body
+    if (filterNumber(phoneNumber) !== undefined) {
+      let user = await User.findOne({ where: { phoneNumber: filterNumber(phoneNumber) } })
+      if (user === null) {
+        user = await User.create({ name, phoneNumber: filterNumber(phoneNumber) })
+        
+      }
+        res.status(200)
+        res.end()
+    } else {
+      res.status(400)
+      res.json({name: ErrorNames.invalidPhoneNumber})
+    }
+  })
 
+  // //app.post('/auth/verify', jsonParser, async (req, res) => {
+  //   const { phoneNumber } = req.body
+  //   if(){
+  //       res.status(200)
+  //       res.end()
+  //   }else {
+  //       res.status(400)
+  //       res.json({name: ErrorNames.invalidVerification})
+  //   }
+  // })
+  /*
   app.post('/grateful', jsonParser, async (req, res) => {
     const { name, smsNumber } = req.body
     if (filterNumber(smsNumber) !== undefined) {
@@ -41,6 +72,7 @@ export const startServer = () => {
       res.redirect('/error404.html')
     }
   })
+*/
 
   app.listen(process.env.PORT, onDone)
 }
