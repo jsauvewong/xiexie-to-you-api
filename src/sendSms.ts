@@ -1,14 +1,21 @@
 import twilio from 'twilio'
+import { Verification, User } from './postgreSQL'
 
-export const sendSms = (message: string) => {
+require('dotenv').config()
+
+export const sendSms = async (message: string) => {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const client = twilio(accountSid, authToken)
+  const twilioNumber = process.env.TWILIO_NUMBER
+
+  const listOfsmsNumber = await User.findAll({ attributes: ['phoneNumber'], raw: true })
+  const clientNumber = listOfsmsNumber[0].phoneNumber
 
   const messageInstancePromise = client.messages.create({
-    body: message,
-    from: '+12028665501',
-    to: '+17788613154'
+    body: `Here's your verification code : ${message} `,
+    from: twilioNumber,
+    to: clientNumber
   })
 
   messageInstancePromise.then((message) => console.log(message.sid))

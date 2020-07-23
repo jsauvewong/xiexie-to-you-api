@@ -1,6 +1,11 @@
 import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize'
+import { UserBindingContext } from 'twilio/lib/rest/chat/v2/service/user/userBinding'
 
-export const sequelize = new Sequelize(process.env.DATABASE_URL || (process.env.PERSONAL_DATABASE_URL as string)) // Example for postgres
+require('dotenv').config()
+
+export const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
+  dialect: 'postgres'
+}) // Example for postgres
 
 export class Entry extends Model {
   public readonly id!: string // Note that the `null assertion` `!` is required in strict mode.
@@ -40,10 +45,6 @@ Entry.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: false
-    },
-    userId: {
-      type: DataTypes.STRING,
-      allowNull: false
     }
   },
   {
@@ -81,18 +82,14 @@ Verification.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV1,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false
-    },
-    userid: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV1,
       allowNull: false
     },
     salt: {
       type: DataTypes.STRING,
-      allowNull: false
+      // changed to true for now
+      allowNull: true
     },
     codeHash: {
       type: DataTypes.STRING,
@@ -101,7 +98,8 @@ Verification.init(
     },
     expiryTs: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      // changed to true for now
+      allowNull: true,
       unique: false
     }
   },
@@ -111,6 +109,13 @@ Verification.init(
   }
 )
 
+Entry.belongsTo(User, {
+  foreignKey: 'Userid'
+})
+
+Verification.belongsTo(User, {
+  foreignKey: 'Userid'
+})
 
 export async function setUpDatabase() {
   try {
