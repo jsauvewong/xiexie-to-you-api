@@ -57,7 +57,7 @@ User.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV1,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       allowNull: false
     },
@@ -110,11 +110,11 @@ Verification.init(
 )
 
 Entry.belongsTo(User, {
-  foreignKey: 'Userid'
+  foreignKey: 'userId'
 })
 
 Verification.belongsTo(User, {
-  foreignKey: 'Userid'
+  foreignKey: 'userId'
 })
 
 export async function setUpDatabase() {

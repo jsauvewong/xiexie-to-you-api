@@ -2,16 +2,12 @@ import { sendSms } from './sendSms'
 import schedule from 'node-schedule'
 import { startServer } from './express'
 import { setUpDatabase } from './postgreSQL'
-import { codeGenerator } from './verificationCodeGenerator'
-import { hashedCode } from './hash'
+
 
 // So the app can talk to Heroku on their own assigned port
 startServer()
 
-const sendVerificationCode = () => {
-  sendSms(hashedCode)
-  console.log('sent')
-}
+
 
 // const execute = () => {
 //   const randomPhrase = pickPhrase()
@@ -29,4 +25,4 @@ const sendVerificationCode = () => {
 
 setUpDatabase()
 
-sendVerificationCode()
+

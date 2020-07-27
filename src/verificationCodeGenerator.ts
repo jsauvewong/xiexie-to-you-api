@@ -2,12 +2,9 @@
 //   return Math.floor(Math.random() * max)
 // }
 
-// generates random 5 numbers
-const randomNumber = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
+//generates random 5 numbers
 
-export const codeGenerator = randomNumber(10000, 99999)
+export let createRandomNumber = () => { return Math.floor(Math.random() * (99999 - 10000 + 1) + 10000) }
 
 
 
@@ -32,4 +29,3 @@ export const codeGenerator = randomNumber(10000, 99999)
 
 //   return randomPhrase
 // }
-

@@ -3,14 +3,18 @@ import { User, Verification, Entry } from './postgreSQL'
 import bodyParser from 'body-parser'
 import path from 'path'
 import { filterNumber } from './parseNumber'
-import dotenv from 'dotenv'
-import { hashedCode } from './hash'
+import { createHash } from './hash'
+import { createRandomNumber } from './verificationCodeGenerator'
+import { create } from 'domain'
+import { sendVerificationCode } from './sendSms'
+import { createJWT, validateJWT } from './jwt'
 
 require('dotenv').config()
 
 enum ErrorNames {
   invalidPhoneNumber = 'invalidPhoneNumber',
-  invalidVerification = 'invalidVerification'
+  invalidVerification = 'invalidVerification',
+  invalidVerificationCode = 'invalidVerificationCode'
 }
 
 export const startServer = () => {
@@ -33,82 +37,44 @@ export const startServer = () => {
     const { name, phoneNumber } = req.body
     const parsedNumber = filterNumber(phoneNumber)
 
+    //parsing number
     if (parsedNumber == undefined) {
       res.status(400).json({ name: ErrorNames.invalidPhoneNumber })
       return
     }
-
+    //searching for existing number
     let user = await User.findOne({ where: { phoneNumber: parsedNumber } })
-
+    //creating new instance if number does not exist
     if (user === null) {
       user = await User.create({ name, phoneNumber: parsedNumber })
       // Verification.salt cannot be null notNull Violation: Verification.expiryTs cannot be null
     }
-
-    await Verification.create({ Userid: user.id, codeHash: hashedCode })
-
+    const createVerification = createRandomNumber()
+    await Verification.create({ userId: user.id, codeHash: createHash(12345) /*createHash(createVerification)*/ })
+    //sendVerificationCode(createVerification)
     res.status(200).end()
-
-    //   res.status(200)
-    // if (parsedNumber !== undefined) {
-    //   let user = await User.findOne({ where: { phoneNumber: parsedNumber } })
-    //   if (user === null) {
-    //     user = await User.create({ name, phoneNumber: parsedNumber })
-    //     res.status(200)
-    //   }
-    // } else {
-    //   res.status(400).json({ name: ErrorNames.invalidPhoneNumber })
-
-    // }
-    //const hashedNumber = hash(parsedNumber)
-    //let user = await Verification.create({ codeHash: hash(hashedNumber)})
   })
-
-  /*
-  app.post('/auth/requestVerification', jsonParser, async (req, res) => {
-    const { name, phoneNumber } = req.body
-    const parsedNumber = filterNumber(phoneNumber)
-
-
-
-  if (parsedNumber !== undefined) {
-    let user = await User.findOne({ where: { phoneNumber: parsedNumber } })
-    if (user === null) {
-      user = await User.create({ name, phoneNumber: parsedNumber })
-      res.status(200)
-    }
-  } else {
-    res.status(400).json({ name: ErrorNames.invalidPhoneNumber })
-    
-  }
-  
-*/
-
-  //res.status(200).end()
 
   app.post('/auth/verify', jsonParser, async (req, res) => {
-    const { phoneNumber } = req.body
-    if (filterNumber(phoneNumber) !== undefined) {
-      let user = await User.findOne({ where: { phoneNumber: filterNumber(phoneNumber) } })
-      if (user === null) {
-        user = await User.create({ name, phoneNumber: filterNumber(phoneNumber) })
-        res.status(200).end()
-      }
+    const { phoneNumber, code } = req.body
+
+    let user = await User.findOne({ where: { phoneNumber: phoneNumber } })
+
+    let anotherUser = await Verification.findOne({ where: { userId: user?.id } })
+
+    //matching same UserId and verification code
+    if (user?.id === anotherUser?.userId && anotherUser?.codeHash == createHash(code)) {
+      //you've been verified <3 
+      createJWT(user?.id!)
+      res.status(200).end()
     } else {
-      res.status(400).json({ name: ErrorNames.invalidPhoneNumber })
+      res.status(400).json({ name: ErrorNames.invalidVerificationCode })
+      return
     }
   })
 
-  // //app.post('/auth/verify', jsonParser, async (req, res) => {
-  //   const { phoneNumber } = req.body
-  //   if(){
-  //       res.status(200)
-  //       res.end()
-  //   }else {
-  //       res.status(400)
-  //       res.json({name: ErrorNames.invalidVerification})
-  //   }
-  // })
+
+
   /*
   app.post('/grateful', jsonParser, async (req, res) => {
     const { name, smsNumber } = req.body

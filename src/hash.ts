@@ -1,7 +1,5 @@
-import { codeGenerator } from './verificationCodeGenerator'
+// import { randomNumber } from './verificationCodeGenerator'
 
-const hash = (input: string): string => {
-  return input
+export let createHash = (input) => {
+  return input + input
 }
-
-export const hashedCode: string = hash(codeGenerator.toString())
