@@ -3,11 +3,8 @@ import schedule from 'node-schedule'
 import { startServer } from './express'
 import { setUpDatabase } from './postgreSQL'
 
-
 // So the app can talk to Heroku on their own assigned port
 startServer()
-
-
 
 // const execute = () => {
 //   const randomPhrase = pickPhrase()
@@ -24,5 +21,4 @@ startServer()
 })*/
 
 setUpDatabase()
-
 

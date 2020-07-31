@@ -7,14 +7,19 @@ import { createHash } from './hash'
 import { createRandomNumber } from './verificationCodeGenerator'
 import { create } from 'domain'
 import { sendVerificationCode } from './sendSms'
-import { createJWT, validateJWT } from './jwt'
+import { createJWT, decodeJWT } from './jwt'
+import { jwt } from 'twilio'
+import { error } from 'console'
+import cryptoRandomString from 'crypto-random-string'
 
 require('dotenv').config()
 
 enum ErrorNames {
   invalidPhoneNumber = 'invalidPhoneNumber',
   invalidVerification = 'invalidVerification',
-  invalidVerificationCode = 'invalidVerificationCode'
+  invalidVerificationCode = 'invalidVerificationCode',
+  invalidJwt = 'invalidJwt',
+  verificationExpired = 'verificationExpired'
 }
 
 export const startServer = () => {
@@ -33,10 +38,11 @@ export const startServer = () => {
   //   res.sendFile(__dirname + '../public/redirectsuccess.html')
   // })
 
+  //creating user and verification code
   app.post('/auth/requestVerification', jsonParser, async (req, res) => {
     const { name, phoneNumber } = req.body
     const parsedNumber = filterNumber(phoneNumber)
-
+    const tenMins = 600000
     //parsing number
     if (parsedNumber == undefined) {
       res.status(400).json({ name: ErrorNames.invalidPhoneNumber })
@@ -47,14 +53,20 @@ export const startServer = () => {
     //creating new instance if number does not exist
     if (user === null) {
       user = await User.create({ name, phoneNumber: parsedNumber })
-      // Verification.salt cannot be null notNull Violation: Verification.expiryTs cannot be null
     }
     const createVerification = createRandomNumber()
-    await Verification.create({ userId: user.id, codeHash: createHash(12345) /*createHash(createVerification)*/ })
+    const saltString = cryptoRandomString({ length: 10, type: 'numeric' })
+    await Verification.create({
+      userId: user.id,
+      salt: saltString,
+      codeHash: '123', //createHash(createVerification, saltString),
+      expiryTs: Date.now() + tenMins
+    })
     //sendVerificationCode(createVerification)
     res.status(200).end()
   })
 
+  //verifying verification code
   app.post('/auth/verify', jsonParser, async (req, res) => {
     const { phoneNumber, code } = req.body
 
@@ -62,18 +74,57 @@ export const startServer = () => {
 
     let anotherUser = await Verification.findOne({ where: { userId: user?.id } })
 
-    //matching same UserId and verification code
-    if (user?.id === anotherUser?.userId && anotherUser?.codeHash == createHash(code)) {
-      //you've been verified <3 
-      createJWT(user?.id!)
-      res.status(200).end()
+    console.log(anotherUser?.expiryTs)
+    console.log(Date.now())
+
+    if (anotherUser?.expiryTs! < Date.now()) {
+      res.status(400).json({ name: ErrorNames.verificationExpired })
+      return
+
+      //matching same UserId and verification code
+    } else if (
+      user?.id === anotherUser?.userId &&
+      anotherUser?.codeHash == '123' /*createHash(code, anotherUser?.salt)*/
+    ) {
+      //sending JWT
+      res.status(200).json({ jwt: createJWT(user?.id!) })
     } else {
       res.status(400).json({ name: ErrorNames.invalidVerificationCode })
       return
     }
   })
 
+  app.patch('/users/me', jsonParser, async (req, res) => {
+    const { text } = req.body
+    const notSliced = req.headers.authorization
+    const token = notSliced?.slice(7)
 
+    const result = decodeJWT(token)
+
+    if (result == false) {
+      res.status(401).json({ name: ErrorNames.invalidJwt })
+      return
+    } else {
+      await Entry.create({ text: text, userId: result.sub })
+      res.status(200).end()
+    }
+  })
+
+  app.get('/entries', jsonParser, async (req, res) => {
+    const notSliced = req.headers.authorization
+    console.log(notSliced + ' req.headers.auth')
+    const token = notSliced?.slice(9)
+    console.log(token + ' is then sliced')
+    const result = decodeJWT(token)
+    console.log(result + 'finished result')
+
+    if (result == false) {
+      res.status(401).json({ name: ErrorNames.invalidJwt })
+      return
+    } else {
+      await Entry.findAll({ where: { userId: result.sub } }).then((result) => res.json(result))
+    }
+  })
 
   /*
   app.post('/grateful', jsonParser, async (req, res) => {

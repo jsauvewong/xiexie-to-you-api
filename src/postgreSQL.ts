@@ -28,7 +28,7 @@ export class Verification extends Model {
   public userId!: string
   public salt!: string // for nullable fields
   public codeHash!: string
-  public expiryTS!: string
+  public expiryTs!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 }
@@ -89,7 +89,7 @@ Verification.init(
     salt: {
       type: DataTypes.STRING,
       // changed to true for now
-      allowNull: true
+      allowNull: false
     },
     codeHash: {
       type: DataTypes.STRING,
@@ -97,9 +97,9 @@ Verification.init(
       unique: false
     },
     expiryTs: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       // changed to true for now
-      allowNull: true,
+      allowNull: false,
       unique: false
     }
   },
